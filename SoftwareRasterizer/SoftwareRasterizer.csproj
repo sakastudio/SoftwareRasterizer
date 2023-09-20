@@ -8,7 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CjClutter.ObjLoader" Version="1.0.0" />
       <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Asset\" />
     </ItemGroup>
 
 </Project>

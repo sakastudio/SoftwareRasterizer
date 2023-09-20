@@ -2,7 +2,7 @@
 
 namespace SoftwareRasterizer.Util;
 
-public class OutputImage
+public static class SROutputImage
 {
     public static void ExportImage(SRColor[,] pixels, string path)
     {

@@ -5,7 +5,7 @@ namespace SoftwareRasterizer.Step0;
 
 public class TestExportImage
 {
-    public static void Main()
+    public static void _Main()
     {
         var pixels = new SRColor[255, 255];
         var path = "test.png";
@@ -23,6 +23,6 @@ public class TestExportImage
             }
         }
         
-        OutputImage.ExportImage(pixels,path);
+        SROutputImage.ExportImage(pixels,path);
     }
 }
