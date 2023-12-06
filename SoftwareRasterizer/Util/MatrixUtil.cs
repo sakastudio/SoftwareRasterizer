@@ -29,4 +29,14 @@ public static class MatrixUtil
         );
     }
 
+    public static SRVector4 Multi(SRMatrix4x4 a, SRVector4 b)
+    {
+        return new SRVector4(
+            a.M00 * b.X + a.M01 * b.Y + a.M02 * b.Z + a.M03 * b.W,
+            a.M10 * b.X + a.M11 * b.Y + a.M12 * b.Z + a.M13 * b.W,
+            a.M20 * b.X + a.M21 * b.Y + a.M22 * b.Z + a.M23 * b.W,
+            a.M30 * b.X + a.M31 * b.Y + a.M32 * b.Z + a.M33 * b.W
+        );
+    }
+
 }

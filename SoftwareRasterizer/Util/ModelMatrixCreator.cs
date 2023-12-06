@@ -37,7 +37,6 @@ public class ModelMatrixCreator
             0,0,0,1
         );
         
-        var rotMatrix = MatrixUtil.Multi(rotXMatrix, MatrixUtil.Multi(rotYMatrix, rotZMatrix));
         
         var scaleMatrix = new SRMatrix4x4(
             scale.X,0,0,0,
@@ -45,8 +44,13 @@ public class ModelMatrixCreator
             0,0,scale.Z,0,
             0,0,0,1
         );
+        
+        var a = MatrixUtil.Multi(posMatrix, rotYMatrix);
+        var b = MatrixUtil.Multi(a, rotXMatrix);
+        var c = MatrixUtil.Multi(b, rotZMatrix);
+        var d = MatrixUtil.Multi(c, scaleMatrix);
 
-        return MatrixUtil.Multi(posMatrix, MatrixUtil.Multi(rotMatrix, scaleMatrix));
+        return d;
 
     }
     

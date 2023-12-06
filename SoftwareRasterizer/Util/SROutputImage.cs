@@ -23,6 +23,6 @@ public static class SROutputImage
         //export
         image.Save(path);
         
-        Console.WriteLine("画像を出力しました fullPath:" + Path.GetFullPath(path));
+        Console.WriteLine("画像を出力しました :" + Path.GetFullPath(path));
     }
 }

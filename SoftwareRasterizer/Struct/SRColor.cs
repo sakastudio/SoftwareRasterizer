@@ -10,4 +10,11 @@ public struct SRColor
     public byte R;
     public byte G;
     public byte B;
+    
+    public SRColor(byte r, byte g, byte b)
+    {
+        R = r;
+        G = g;
+        B = b;
+    }
 }
