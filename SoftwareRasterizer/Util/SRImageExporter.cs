@@ -1,53 +1,44 @@
-﻿using ObjLoader.Loader.Loaders;
+﻿using ObjLoader.Loader.Data.Elements;
+using ObjLoader.Loader.Loaders;
 using SoftwareRasterizer.Struct;
 
 namespace SoftwareRasterizer.Util;
 
 public static class SRImageExporter
 {
-    public static List<SRVector3> LoadVertex(string path)
-    {
-        var result = LoadObj(path);
-
-        var vertices = new List<SRVector3>();
-        foreach (var vertex in result.Vertices)
-        {
-            vertices.Add(new SRVector3
-            {
-                X = vertex.X,
-                Y = vertex.Y,
-                Z = vertex.Z
-            });
-        }
-
-        return vertices;
-    }
-
-    public static List<SRVertex> LoadVertex2(string path)
+    public static List<SRVertex> LoadVertex(string path)
     {
         var result = LoadObj(path);
 
         var vertices = new List<SRVertex>();
-        foreach (var vertex in result)
+        foreach (var group in result.Groups)
         {
-            var faceIndexList = new List<int>();
-            foreach (var VARIABLE in vertex)
+            foreach (var face in group.Faces)
             {
-                
-            }
-            var a = new SRVertex()
-            {
-                VertexIndex = vertices.Count,
-                Position = new SRVector3
+                var faceIndexList = new List<int>();
+                for (var j = 0; j < face.Count; j++)
                 {
-                    X = vertex.X,
-                    Y = vertex.Y,
-                    Z = vertex.Z
+                    var faceVertex = face[j];
+                    faceIndexList.Add(faceVertex.VertexIndex);
+                    var vertex = result.Vertices[faceVertex.VertexIndex - 1];
+                    
+                    vertices.Add(new SRVertex()
+                    {
+                        VertexIndex = vertices.Count,
+                        Position = new SRVector4
+                        {
+                            X = vertex.X,
+                            Y = vertex.Y,
+                            Z = vertex.Z,
+                            W = 1
+                        },
+                        FaceIndexList = faceIndexList
+                    });
                 }
-                
-            };
-            vertices.Add(a);
+            }
         }
+        
+        return vertices;
     }
 
     private static LoadResult LoadObj(string path)

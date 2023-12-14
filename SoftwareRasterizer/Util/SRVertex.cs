@@ -4,8 +4,7 @@ namespace SoftwareRasterizer.Util;
 
 public class SRVertex
 {
-    public SRVector3 Position;
+    public SRVector4 Position;
     public int VertexIndex;
-    
-    public List<int> FaceIndexList = new List<int>();
+    public List<int> FaceIndexList;
 }

@@ -19,8 +19,9 @@ public class VertexTransform
         const int height = 36 * 10;
         var pixels = new SRColor[width, height];
         var path = "step1.png";
-        foreach (var point in clipSpaceVertex)
+        foreach (var vertex in clipSpaceVertex)
         {
+            var point = vertex.Position;
             var x = (int)((point.X / point.W + 1) * 0.5f * width);
             var y = (int)((1 - point.Y / point.W) * 0.5f * height);
             if (x < 0 || x >= width || y < 0 || y >= height)
@@ -40,13 +41,12 @@ public class VertexTransform
     }
 
 
-    public static List<SRVector4> CreateConvertedVertex(string path, SRVector3 objectPos, SRVector3 objectRotateDegree, SRVector3 objectScale)
+    public static List<SRVertex> CreateConvertedVertex(string path, SRVector3 objectPos, SRVector3 objectRotateDegree, SRVector3 objectScale)
     {
         var teaPodVertex = SRImageExporter.LoadVertex(path);
 
-        var worldSpaceVertex = new List<SRVector4>();
+        //MVP変換をする
         {
-            //MVP変換行列を作る
             // モデル変換行列（オブジェクト座標系からワールド座標系へ変換する）
             //http://marupeke296.sakura.ne.jp/DXG_No39_WorldMatrixInformation.html
             var posMatrix = new SRMatrix4x4(
@@ -97,12 +97,11 @@ public class VertexTransform
 
             foreach (var teaPodPoint in teaPodVertex)
             {
-                worldSpaceVertex.Add(MatrixUtil.Multi(modelMatrix, new SRVector4(teaPodPoint, 1)));
+                teaPodPoint.Position = MatrixUtil.Multi(modelMatrix, teaPodPoint.Position);
             }
         }
 
 
-        var viewSpaceVertex = new List<SRVector4>();
         {
             // ビュー変換行列 （ワールド座標からカメラ座標への変換）
             // https://yttm-work.jp/gmpg/gmpg_0003.html
@@ -121,14 +120,13 @@ public class VertexTransform
                 forward.X, forward.Y, forward.Z, -Vector3Util.Dot(forward, cameraPos),
                 0, 0, 0, 1);
 
-            foreach (var v in worldSpaceVertex)
+            foreach (var teaPodPoint in teaPodVertex)
             {
-                viewSpaceVertex.Add(MatrixUtil.Multi(viewMatrix, v));
+                teaPodPoint.Position = MatrixUtil.Multi(viewMatrix, teaPodPoint.Position);
             }
         }
 
 
-        var clipSpaceVertex = new List<SRVector4>();
         {
             //プロジェクション座標変換行列（カメラ座標からクリップ座標への変換）
             //https://yttm-work.jp/gmpg/gmpg_0004.html
@@ -146,15 +144,16 @@ public class VertexTransform
                 0, 0, -cameraNear / (cameraFar - cameraNear) * cameraFar, 0
             );
 
-            foreach (var v in viewSpaceVertex)
+            foreach (var teaPodPoint in teaPodVertex)
             {
-                clipSpaceVertex.Add(MatrixUtil.Multi(perspectiveMatrix, v));
+                teaPodPoint.Position = MatrixUtil.Multi(perspectiveMatrix, teaPodPoint.Position);
             }
+
         }
         
         //TODO クリップ座標系の頂点をクリッピングする
    
-        return clipSpaceVertex;
+        return teaPodVertex;
     }
 
     private static float sin(float radian)
