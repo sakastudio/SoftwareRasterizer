@@ -151,6 +151,9 @@ public class VertexTransform
                 clipSpaceVertex.Add(MatrixUtil.Multi(perspectiveMatrix, v));
             }
         }
+        
+        //TODO クリップ座標系の頂点をクリッピングする
+   
         return clipSpaceVertex;
     }
 

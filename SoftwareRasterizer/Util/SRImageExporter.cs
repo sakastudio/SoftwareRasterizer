@@ -22,7 +22,34 @@ public static class SRImageExporter
 
         return vertices;
     }
-    
+
+    public static List<SRVertex> LoadVertex2(string path)
+    {
+        var result = LoadObj(path);
+
+        var vertices = new List<SRVertex>();
+        foreach (var vertex in result)
+        {
+            var faceIndexList = new List<int>();
+            foreach (var VARIABLE in vertex)
+            {
+                
+            }
+            var a = new SRVertex()
+            {
+                VertexIndex = vertices.Count,
+                Position = new SRVector3
+                {
+                    X = vertex.X,
+                    Y = vertex.Y,
+                    Z = vertex.Z
+                }
+                
+            };
+            vertices.Add(a);
+        }
+    }
+
     private static LoadResult LoadObj(string path)
     {
         Console.WriteLine("LoadObj FullPath:" + Path.GetFullPath(path));
