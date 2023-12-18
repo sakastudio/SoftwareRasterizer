@@ -6,17 +6,19 @@ namespace SoftwareRasterizer.Step1;
 
 public class VertexTransform
 {
-    public static void Main()
+    public static void _Main()
     {
-        var clipSpaceVertex = CreateConvertedVertex(
+        const int width = 64 * 4;
+        const int height = 36 * 4;
+        
+        var clipSpaceVertex = VertexTransform.CreateConvertedVertex(
             @"G:\RiderProjects\SoftwareRasterizer\SoftwareRasterizer\Asset\teapod.obj", 
             new SRVector3(0, 0, 0),
-                new SRVector3(180, 90, 0), 
-            new SRVector3(1, 1, 1));
+            new SRVector3(180, 90, 0), 
+            new SRVector3(1, 1, 1),
+            new SRVector2(width,height));
 
         // 出力画像に変換する
-        const int width = 64 * 10;
-        const int height = 36 * 10;
         var pixels = new SRColor[width, height];
         var path = "step1.png";
         foreach (var vertex in clipSpaceVertex)
@@ -41,7 +43,7 @@ public class VertexTransform
     }
 
 
-    public static List<SRVertex> CreateConvertedVertex(string path, SRVector3 objectPos, SRVector3 objectRotateDegree, SRVector3 objectScale)
+    public static List<SRVertex> CreateConvertedVertex(string path, SRVector3 objectPos, SRVector3 objectRotateDegree, SRVector3 objectScale,SRVector2 screenSize)
     {
         var teaPodVertex = SRImageExporter.LoadVertex(path);
 
@@ -106,7 +108,7 @@ public class VertexTransform
             // ビュー変換行列 （ワールド座標からカメラ座標への変換）
             // https://yttm-work.jp/gmpg/gmpg_0003.html
             //http://marupeke296.com/DXG_No72_ViewProjInfo.html
-            var cameraPos = new SRVector3(20, 20, 20);
+            var cameraPos = new SRVector3(20, 10, 20);
             var cameraTarget = new SRVector3(0, 0, 0);
             var cameraUp = new SRVector3(0, 1, 0);
 
@@ -132,9 +134,9 @@ public class VertexTransform
             //https://yttm-work.jp/gmpg/gmpg_0004.html
             //http://marupeke296.com/DXG_No70_perspective.html
             const float viewAngle = 100 * (MathF.PI / 180);
-            const float aspectRate = 16f / 9f;
             const float cameraNear = 0.1f;
             const float cameraFar = 100;
+            var aspectRate = screenSize.Y / screenSize.X;
 
 
             var perspectiveMatrix = new SRMatrix4x4(
@@ -149,6 +151,17 @@ public class VertexTransform
                 teaPodPoint.Position = MatrixUtil.Multi(perspectiveMatrix, teaPodPoint.Position);
             }
 
+        }
+        {
+            //デバイス座標系変換
+            
+            foreach (var teaPodPoint in teaPodVertex)
+            {
+                teaPodPoint.Position.X /= teaPodPoint.Position.W;
+                teaPodPoint.Position.Y /= teaPodPoint.Position.W;
+                teaPodPoint.Position.Z /= teaPodPoint.Position.W;
+                teaPodPoint.Position.W /= teaPodPoint.Position.W;
+            }
         }
         
         //TODO クリップ座標系の頂点をクリッピングする

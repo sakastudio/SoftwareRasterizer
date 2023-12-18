@@ -6,5 +6,5 @@ public class SRVertex
 {
     public SRVector4 Position;
     public int VertexIndex;
-    public List<int> FaceIndexList;
+    public List<int> FaceIndex;
 }

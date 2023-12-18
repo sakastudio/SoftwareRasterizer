@@ -32,7 +32,7 @@ public static class SRImageExporter
                             Z = vertex.Z,
                             W = 1
                         },
-                        FaceIndexList = faceIndexList
+                        FaceIndex = faceIndexList
                     });
                 }
             }
