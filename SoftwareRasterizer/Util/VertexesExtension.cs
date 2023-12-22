@@ -7,59 +7,37 @@ public static class VertexesExtension
     public static List<List<SRVertex>> GetFaces(this List<SRVertex> vertices)
     {
         var faces = new List<List<SRVertex>>();
-        var addedIndex = new List<int>();
         
         foreach (var vertex in vertices)
         {
-            if (addedIndex.Contains(vertex.VertexIndex))
+            var face = new List<SRVertex>();
+            foreach (var faceIndex in vertex.FaceIndex)
             {
-                continue;
+                face.Add(vertices.Find(v => v.VertexIndex == faceIndex));
             }
-            addedIndex.AddRange(vertex.FaceIndex);
-            var face = vertex.FaceIndex.Select(faceIndex => vertices[faceIndex - 1]).ToList();
             faces.Add(face);
         }
         return faces;
     }
     
-    public static SRBoundingBox GetBoundingBox(this List<SRVertex> vertices)
+    public static SRBoundingBox GetClippingBoundingBox(this List<SRVertex> vertices)
     {
-        var minX = float.MaxValue;
-        var minY = float.MaxValue;
-        var minZ = float.MaxValue;
-        var maxX = float.MinValue;
-        var maxY = float.MinValue;
-        var maxZ = float.MinValue;
-        
+        var min = new SRVector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        var max = new SRVector3(float.MinValue, float.MinValue, float.MinValue);
+            
         foreach (var vertex in vertices)
         {
-            var position = vertex.Position;
-            if (position.X < minX)
-            {
-                minX = position.X;
-            }
-            if (position.Y < minY)
-            {
-                minY = position.Y;
-            }
-            if (position.Z < minZ)
-            {
-                minZ = position.Z;
-            }
-            if (position.X > maxX)
-            {
-                maxX = position.X;
-            }
-            if (position.Y > maxY)
-            {
-                maxY = position.Y;
-            }
-            if (position.Z > maxZ)
-            {
-                maxZ = position.Z;
-            }
+            var clipping = vertex.ClipPosition;
+            
+            min.X = Math.Min(min.X, clipping.X);
+            min.Y = Math.Min(min.Y, clipping.Y);
+            min.Z = Math.Min(min.Z, clipping.Z);
+            
+            max.X = Math.Max(max.X, clipping.X);
+            max.Y = Math.Max(max.Y, clipping.Y);
+            max.Z = Math.Max(max.Z, clipping.Z);
         }
         
-        return new SRBoundingBox(new SRVector3(minX, minY, minZ), new SRVector3(maxX, maxY, maxZ));
+        return new SRBoundingBox(min, max);
     }
 }

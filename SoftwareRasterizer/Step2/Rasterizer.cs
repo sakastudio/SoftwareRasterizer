@@ -9,15 +9,18 @@ public class Rasterizer
 {
     public static void Main()
     {
-        const int width = 64 * 4;
-        const int height = 36 * 4;
+        const int width = 64 * 1;
+        const int height = 36 * 1;
         
         var clipSpaceVertex = VertexTransform.CreateConvertedVertex(
-            @"G:\RiderProjects\SoftwareRasterizer\SoftwareRasterizer\Asset\teapod.obj", 
+            TeapotPath.Path, 
             new SRVector3(0, 0, 0),
-            new SRVector3(180, 90, 0), 
+            new SRVector3(0, 90, 0), 
             new SRVector3(1, 1, 1),
-            new SRVector2(width,height));
+            new SRVector2Int(width,height));
+        
+        //ライトの設定
+        var lightDirection = new SRVector3(-1f, 1f, 0f);
         
         
         var pixels = new SRColor[width, height];
@@ -35,8 +38,7 @@ public class Rasterizer
 
                 foreach (var face in faces)
                 {
-                    var bb = face.GetBoundingBox();
-                    //var bbScreenMin = GetScreenPos(bb.Min, width, height);
+                    var bb = face.GetClippingBoundingBox();
 
                     if (rasterizeX < bb.Min.X || rasterizeX > bb.Max.X ||
                         rasterizeY < bb.Min.Y || rasterizeY > bb.Max.Y)
@@ -44,9 +46,9 @@ public class Rasterizer
                         continue;
                     }
 
-                    var A = GetScreenPos(face[0].Position, width, height);
-                    var B = GetScreenPos(face[1].Position, width, height);
-                    var C = GetScreenPos(face[2].Position, width, height);
+                    var A = face[0].ClipPosition;
+                    var B = face[1].ClipPosition;
+                    var C = face[2].ClipPosition;
 
                     // Edge関数の計算
                     var edgeA = (C.X - B.X) * (rasterizeY - B.Y) - (C.Y - B.Y) * (rasterizeX - B.X); // BC×BP
@@ -55,9 +57,19 @@ public class Rasterizer
 
                     if (edgeA >= 0 & edgeB >= 0 & edgeC >= 0)
                     {
-                        // 三角形の内側(表側)であればラスタライズ
                         // TODO z-バッファ法 (より手前にあるものを描画)
-                        pixels[x, y] = new SRColor(255, 255, 255);
+                        //ノーマル方向を計算する
+                        var worldA = new SRVector3(face[0].WorldPosition.X, face[0].WorldPosition.Y, face[0].WorldPosition.Z);
+                        var worldB = new SRVector3(face[1].WorldPosition.X, face[1].WorldPosition.Y, face[1].WorldPosition.Z);
+                        var worldC = new SRVector3(face[2].WorldPosition.X, face[2].WorldPosition.Y, face[2].WorldPosition.Z);
+                        var normal = SRVector3.Cross(worldB - worldA, worldC - worldA);
+                        normal = normal.Normalize();
+                        
+                        
+                        //ライトとノーマルの内積を計算する
+                        var color = 0.2f + 0.8f * MathF.Max(0, SRVector3.Dot(normal, lightDirection));
+                        
+                        pixels[x, y] = new SRColor(color, color, color);
                     }
                 }
             }

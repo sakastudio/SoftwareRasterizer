@@ -8,10 +8,10 @@ public static class SRImageExporter
 {
     public static List<SRVertex> LoadVertex(string path)
     {
-        var result = LoadObj(path);
+        var obj = LoadObj(path);
 
         var vertices = new List<SRVertex>();
-        foreach (var group in result.Groups)
+        foreach (var group in obj.Groups)
         {
             foreach (var face in group.Faces)
             {
@@ -20,12 +20,12 @@ public static class SRImageExporter
                 {
                     var faceVertex = face[j];
                     faceIndexList.Add(faceVertex.VertexIndex);
-                    var vertex = result.Vertices[faceVertex.VertexIndex - 1];
+                    var vertex = obj.Vertices[faceVertex.VertexIndex - 1]; //VertexIndexは1から始まるので-1する
                     
                     vertices.Add(new SRVertex()
                     {
-                        VertexIndex = vertices.Count,
-                        Position = new SRVector4
+                        VertexIndex = faceVertex.VertexIndex,
+                        ModelPosition = new SRVector4
                         {
                             X = vertex.X,
                             Y = vertex.Y,

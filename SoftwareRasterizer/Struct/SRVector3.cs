@@ -30,4 +30,23 @@ public struct SRVector3
     {
         return $"({X},{Y},{Z})";
     }
+
+    public static float Dot(SRVector3 a, SRVector3 b)
+    {
+        return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+    }
+
+    public static SRVector3 Cross(SRVector3 a, SRVector3 b)
+    {
+        return new SRVector3(
+            a.Y * b.Z - a.Z * b.Y,
+            a.Z * b.X - a.X * b.Z,
+            a.X * b.Y - a.Y * b.X);
+    }
+
+    public SRVector3 Normalize()
+    {
+        var length = (float) Math.Sqrt(X * X + Y * Y + Z * Z);
+        return new SRVector3(X / length, Y / length, Z / length);
+    }
 }

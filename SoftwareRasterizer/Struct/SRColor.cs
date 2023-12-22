@@ -17,4 +17,11 @@ public struct SRColor
         G = g;
         B = b;
     }
+    
+    public SRColor(float r, float g, float b)
+    {
+        R = (byte)(r * 255);
+        G = (byte)(g * 255);
+        B = (byte)(b * 255);
+    }
 }

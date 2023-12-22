@@ -11,3 +11,15 @@ public struct SRBoundingBox
         Max = max;
     }
 }
+
+public struct SRVec2BoundingBoxInt
+{
+    public SRVector2Int Min;
+    public SRVector2Int Max;
+    
+    public SRVec2BoundingBoxInt(SRVector2Int min, SRVector2Int max)
+    {
+        Min = min;
+        Max = max;
+    }
+}

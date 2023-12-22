@@ -11,3 +11,14 @@ public struct SRVector2
         Y = y;
     }
 }
+public struct SRVector2Int
+{
+    public int X;
+    public int Y;
+ 
+    public SRVector2Int(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+}
