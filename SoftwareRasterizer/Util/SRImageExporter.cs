@@ -6,11 +6,30 @@ namespace SoftwareRasterizer.Util;
 
 public static class SRImageExporter
 {
-    public static List<SRVertex> LoadVertex(string path)
+    public static (Dictionary<int, SRVertex> vertices, List<List<int>> faces) LoadVertex(string path)
     {
         var obj = LoadObj(path);
 
-        var vertices = new List<SRVertex>();
+        var vertices = new Dictionary<int,SRVertex>();
+
+        for (var i = 0; i < obj.Vertices.Count; i++)
+        {
+            var vertex = obj.Vertices[i];
+            vertices.Add(i+1, new SRVertex()
+            {
+                VertexIndex = i+1,
+                ModelPosition = new SRVector4
+                {
+                    X = vertex.X,
+                    Y = vertex.Y,
+                    Z = vertex.Z,
+                    W = 1
+                },
+            });
+        }
+        
+        var faces = new List<List<int>>();
+
         foreach (var group in obj.Groups)
         {
             foreach (var face in group.Faces)
@@ -18,27 +37,13 @@ public static class SRImageExporter
                 var faceIndexList = new List<int>();
                 for (var j = 0; j < face.Count; j++)
                 {
-                    var faceVertex = face[j];
-                    faceIndexList.Add(faceVertex.VertexIndex);
-                    var vertex = obj.Vertices[faceVertex.VertexIndex - 1]; //VertexIndexは1から始まるので-1する
-                    
-                    vertices.Add(new SRVertex()
-                    {
-                        VertexIndex = faceVertex.VertexIndex,
-                        ModelPosition = new SRVector4
-                        {
-                            X = vertex.X,
-                            Y = vertex.Y,
-                            Z = vertex.Z,
-                            W = 1
-                        },
-                        FaceIndex = faceIndexList
-                    });
+                    faceIndexList.Add(face[j].VertexIndex);
                 }
+                faces.Add(faceIndexList);
             }
         }
         
-        return vertices;
+        return (vertices,faces);
     }
 
     private static LoadResult LoadObj(string path)

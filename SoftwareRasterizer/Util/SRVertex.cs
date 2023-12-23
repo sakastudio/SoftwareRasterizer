@@ -11,5 +11,4 @@ public class SRVertex
     public SRVector2Int ScreenPos; 
         
     public int VertexIndex;
-    public List<int> FaceIndex;
 }

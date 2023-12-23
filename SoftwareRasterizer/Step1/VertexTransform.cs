@@ -11,7 +11,7 @@ public class VertexTransform
         const int width = 64 * 4;
         const int height = 36 * 4;
         
-        var clipSpaceVertex = VertexTransform.CreateConvertedVertex(
+        var (vertices,facese) = VertexTransform.CreateConvertedVertex(
             TeapotPath.Path, 
             new SRVector3(0, 0, 0),
             new SRVector3(0, 90, 0), 
@@ -21,7 +21,7 @@ public class VertexTransform
         // 出力画像に変換する
         var pixels = new SRColor[width, height];
         var path = "step1.png";
-        foreach (var vertex in clipSpaceVertex)
+        foreach (var vertex in vertices.Values)
         {
             var point = vertex.ScreenPos;
             var x = point.X;
@@ -40,9 +40,9 @@ public class VertexTransform
     }
 
 
-    public static List<SRVertex> CreateConvertedVertex(string path, SRVector3 objectPos, SRVector3 objectRotateDegree, SRVector3 objectScale,SRVector2Int screenSize)
+    public static (Dictionary<int, SRVertex> vertex, List<List<int>> faces) CreateConvertedVertex(string path, SRVector3 objectPos, SRVector3 objectRotateDegree, SRVector3 objectScale,SRVector2Int screenSize)
     {
-        var teaPodVertex = SRImageExporter.LoadVertex(path);
+        var (vertices,faces) = SRImageExporter.LoadVertex(path);
 
         //MVP変換をする
         {
@@ -94,9 +94,9 @@ public class VertexTransform
             var c = MatrixUtil.Multi(b, rotZMatrix);
             var modelMatrix = MatrixUtil.Multi(c, scaleMatrix);
 
-            foreach (var teaPodPoint in teaPodVertex)
+            foreach (var teaPodPoint in vertices)
             {
-                teaPodPoint.WorldPosition = MatrixUtil.Multi(modelMatrix, teaPodPoint.ModelPosition);
+                teaPodPoint.Value.WorldPosition = MatrixUtil.Multi(modelMatrix, teaPodPoint.Value.ModelPosition);
             }
         }
 
@@ -119,9 +119,9 @@ public class VertexTransform
                 forward.X, forward.Y, forward.Z, -Vector3Util.Dot(forward, cameraPos),
                 0, 0, 0, 1);
 
-            foreach (var teaPodPoint in teaPodVertex)
+            foreach (var teaPodPoint in vertices)
             {
-                teaPodPoint.ViewPosition = MatrixUtil.Multi(viewMatrix, teaPodPoint.WorldPosition);
+                teaPodPoint.Value.ViewPosition = MatrixUtil.Multi(viewMatrix, teaPodPoint.Value.WorldPosition);
             }
         }
 
@@ -143,31 +143,31 @@ public class VertexTransform
                 0, 0, -cameraNear / (cameraFar - cameraNear) * cameraFar, 0
             );
 
-            foreach (var teaPodPoint in teaPodVertex)
+            foreach (var teaPodPoint in vertices)
             {
-                teaPodPoint.ClipPosition = MatrixUtil.Multi(perspectiveMatrix, teaPodPoint.ViewPosition);
+                teaPodPoint.Value.ClipPosition = MatrixUtil.Multi(perspectiveMatrix, teaPodPoint.Value.ViewPosition);
                 
                 //正規化デバイス座標系変換
-                teaPodPoint.ClipPosition.X /= teaPodPoint.ClipPosition.W;
-                teaPodPoint.ClipPosition.Y /= teaPodPoint.ClipPosition.W;
-                teaPodPoint.ClipPosition.Z /= teaPodPoint.ClipPosition.W;
-                teaPodPoint.ClipPosition.W /= teaPodPoint.ClipPosition.W;
+                teaPodPoint.Value.ClipPosition.X /= teaPodPoint.Value.ClipPosition.W;
+                teaPodPoint.Value.ClipPosition.Y /= teaPodPoint.Value.ClipPosition.W;
+                teaPodPoint.Value.ClipPosition.Z /= teaPodPoint.Value.ClipPosition.W;
+                teaPodPoint.Value.ClipPosition.W /= teaPodPoint.Value.ClipPosition.W;
             }
 
         }
         {
             //スクリーン座標に変換
-            foreach (var teaPodPoint in teaPodVertex)
+            foreach (var teaPodPoint in vertices)
             {
-                var x = (int)((teaPodPoint.ClipPosition.X + 1) * screenSize.X / 2);
-                var y = (int)((teaPodPoint.ClipPosition.Y + 1) * screenSize.Y / 2);
-                teaPodPoint.ScreenPos = new SRVector2Int(x, y);
+                var x = (int)((teaPodPoint.Value.ClipPosition.X + 1) * screenSize.X / 2);
+                var y = (int)((teaPodPoint.Value.ClipPosition.Y + 1) * screenSize.Y / 2);
+                teaPodPoint.Value.ScreenPos = new SRVector2Int(x, y);
             }
         }
         
         //TODO クリップ座標系の頂点をクリッピングする
    
-        return teaPodVertex;
+        return (vertices,faces);
     }
 
     private static float sin(float radian)

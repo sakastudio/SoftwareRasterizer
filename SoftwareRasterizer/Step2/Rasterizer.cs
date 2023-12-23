@@ -9,10 +9,10 @@ public class Rasterizer
 {
     public static void Main()
     {
-        const int width = 64 * 1;
-        const int height = 36 * 1;
+        const int width = 64 * 5;
+        const int height = 36 * 5;
         
-        var clipSpaceVertex = VertexTransform.CreateConvertedVertex(
+        var (vertices,faces) = VertexTransform.CreateConvertedVertex(
             TeapotPath.Path, 
             new SRVector3(0, 0, 0),
             new SRVector3(0, 90, 0), 
@@ -24,53 +24,72 @@ public class Rasterizer
         
         
         var pixels = new SRColor[width, height];
+        var zBuffer = new float[width, height];
+        
+        
         var path = "step2.png";
 
-        var faces = clipSpaceVertex.GetFaces();
 
         for (int x = 0; x < width; x++)
         {
             Console.WriteLine($"x:{x}");
             for (int y = 0; y < height; y++)
             {
+                zBuffer[x, y] = float.MaxValue;
                 var rasterizeX = 1.0f / width + x * (2.0f / width) - 1.0f;
                 var rasterizeY = 1.0f / height + y * (2.0f / height) - 1.0f;
 
                 foreach (var face in faces)
                 {
-                    var bb = face.GetClippingBoundingBox();
+                    var bb = face.GetClippingBoundingBox(vertices);
 
                     if (rasterizeX < bb.Min.X || rasterizeX > bb.Max.X ||
                         rasterizeY < bb.Min.Y || rasterizeY > bb.Max.Y)
                     {
                         continue;
                     }
+                    
+                    var AVertex = vertices[face[0]];
+                    var BVertex = vertices[face[1]];
+                    var CVertex = vertices[face[2]];
 
-                    var A = face[0].ClipPosition;
-                    var B = face[1].ClipPosition;
-                    var C = face[2].ClipPosition;
+                    var A = AVertex.ClipPosition;
+                    var B = BVertex.ClipPosition;
+                    var C = CVertex.ClipPosition;
 
                     // Edge関数の計算
                     var edgeA = (C.X - B.X) * (rasterizeY - B.Y) - (C.Y - B.Y) * (rasterizeX - B.X); // BC×BP
                     var edgeB = (A.X - C.X) * (rasterizeY - C.Y) - (A.Y - C.Y) * (rasterizeX - C.X); // CA×CP
                     var edgeC = (B.X - A.X) * (rasterizeY - A.Y) - (B.Y - A.Y) * (rasterizeX - A.X); // AB×AP
 
-                    if (edgeA >= 0 & edgeB >= 0 & edgeC >= 0)
+                    if (!(edgeA >= 0 & edgeB >= 0 & edgeC >= 0)) continue;
+                    
+                    float lambda_A, lambda_B, lambda_C;
+                    var temp = edgeA + edgeB + edgeC;
+                    lambda_A = edgeA/temp;
+                    lambda_B = edgeB/temp;
+                    lambda_C = edgeC/temp;
+                    var depth = lambda_A * A.Z + lambda_B * B.Z + lambda_C * C.Z;
+                    if (zBuffer[x, y] < depth)
                     {
-                        // TODO z-バッファ法 (より手前にあるものを描画)
-                        //ノーマル方向を計算する
-                        var worldA = new SRVector3(face[0].WorldPosition.X, face[0].WorldPosition.Y, face[0].WorldPosition.Z);
-                        var worldB = new SRVector3(face[1].WorldPosition.X, face[1].WorldPosition.Y, face[1].WorldPosition.Z);
-                        var worldC = new SRVector3(face[2].WorldPosition.X, face[2].WorldPosition.Y, face[2].WorldPosition.Z);
-                        var normal = SRVector3.Cross(worldB - worldA, worldC - worldA);
-                        normal = normal.Normalize();
-                        
-                        
-                        //ライトとノーマルの内積を計算する
-                        var color = 0.2f + 0.8f * MathF.Max(0, SRVector3.Dot(normal, lightDirection));
-                        
-                        pixels[x, y] = new SRColor(color, color, color);
+                        //continue;
                     }
+                    
+                    
+                    // z-バッファ法 (より手前にあるものを描画)
+                    zBuffer[x, y] = depth;
+                        
+                    //ノーマル方向を計算する
+                    var worldA = new SRVector3(AVertex.WorldPosition.X, AVertex.WorldPosition.Y, AVertex.WorldPosition.Z);
+                    var worldB = new SRVector3(BVertex.WorldPosition.X, BVertex.WorldPosition.Y, BVertex.WorldPosition.Z);
+                    var worldC = new SRVector3(CVertex.WorldPosition.X, CVertex.WorldPosition.Y, CVertex.WorldPosition.Z);
+                    var normal = SRVector3.Cross(worldB - worldA, worldC - worldA);
+                    normal = normal.Normalize();
+                        
+                    //ライトとノーマルの内積を計算する
+                    var color = 0.2f + 0.8f * MathF.Max(0, SRVector3.Dot(normal, lightDirection));
+                        
+                    pixels[x, y] = new SRColor(color, color, color);
                 }
             }
         }
@@ -81,12 +100,5 @@ public class Rasterizer
         ps1.StartInfo.UseShellExecute = true;
         ps1.StartInfo.FileName = path;
         ps1.Start();
-    }
-
-    private static SRVector2 GetScreenPos(SRVector4 perspectivePos, int width, int height)
-    {
-        var screenX = (int)((perspectivePos.X / perspectivePos.W + 1) * 0.5f * width);
-        var screenY = (int)((1 - perspectivePos.Y / perspectivePos.W) * 0.5f * height);
-        return new SRVector2(screenX, screenY);
     }
 }
